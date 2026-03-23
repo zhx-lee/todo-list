@@ -1,59 +1,64 @@
 todoMain();
 function todoMain() {
-    let inputElem;
-    let ulElem;
+    let inputElem,
+        inputElem2,
+        button,
+        ulElem;
     getElements();
     addListeners();
 
     function getElements() {
         inputElem = document.getElementsByTagName("input")[0];
+        inputElem2 = document.getElementsByTagName("input")[1];
+        button = document.getElementById("addBtn");
         ulElem = document.getElementsByTagName("ul")[0]
+
     }
     function addListeners() {
-        inputElem.addEventListener("change", onChange, false);
+        button.addEventListener("click", addEntry, false);
     }
-    function onChange(event) {
-        let flag = true;
-
+    function addEntry(event) {
         let inputValue = inputElem.value;
         inputElem.value = "";
-        let liElem = document.createElement("li");
+        let inputValue2 = inputElem2.value;
+        inputElem2.value = "";
 
+        // add a new row
+
+        let table = document.getElementById("todoTable");
+        let trElem = document.createElement("tr");
+        table.appendChild(trElem);
+
+        // checkbox cell
         let checkboxElem = document.createElement("input");
         checkboxElem.type = "checkbox";
-        liElem.appendChild(checkboxElem)
-
-        let textElem = document.createElement("span");
-        textElem.innerText = inputValue;
-        liElem.appendChild(textElem);
-
-        // liElem.innerText = inputValue;
-        // liElem.addEventListener("click", onClick, false);
-
+        checkboxElem.addEventListener("click", done, false);
+        let tdElem1 = document.createElement("td");
+        tdElem1.appendChild(checkboxElem);
+        trElem.appendChild(tdElem1);
+        // to-do cell
+        let tdElem2 = document.createElement("td");
+        tdElem2.innerText = inputValue;
+        trElem.appendChild(tdElem2);
+        // category cell
+        let tdElem3 = document.createElement("td");
+        tdElem3.innerText = inputValue2;
+        trElem.appendChild(tdElem3);
+        // delete cell
         let spanElem = document.createElement("span");
         spanElem.innerText = "delete";
         spanElem.className = "material-symbols-outlined";
-
         spanElem.addEventListener("click", deleteItem, false);
+        let tdElem4 = document.createElement("td");
+        tdElem4.appendChild(spanElem);
+        trElem.appendChild(tdElem4);
 
-        liElem.appendChild(spanElem);
-
-        ulElem.appendChild(liElem);
         function deleteItem() {
-            liElem.remove();
+            trElem.remove();
         }
 
-        function onClick() {
-            if (flag) {
-                //     this.style.textDecoration = "line-through";
-                //     flag = !flag;
-                this.classList.add("strike");
-            } else {
-                // this.style.textDecoration = "none";
-                // flag = !flag;
-                this.classList.remove("strike");
-            }
-
+        function done() {
+            trElem.classList.toggle("strike");
         }
     }
 }

@@ -11,8 +11,25 @@
     />
   </head>
   <body>
-    <input type="text" name="" id="" />
+    <input type="text" placeholder="Enter new to-do" />
+    <p>
+      <input type="text" placeholder="Enter category" list="categoryList" />
+    </p>
+    <datalist id="categoryList">
+      <option value="Personal"></option>
+      <option value="Work"></option>
+    </datalist>
+
+    <button id="addBtn">Add</button>
     <ul></ul>
+    <table id="todoTable">
+      <tr>
+        <td>checkbox</td>
+        <td>to-do</td>
+        <td>category</td>
+        <td>delete</td>
+      </tr>
+    </table>
     <script src="todo.js"></script>
   </body>
 </html>
