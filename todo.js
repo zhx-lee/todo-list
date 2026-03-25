@@ -54,8 +54,16 @@ function todoMain() {
         tdElem4.appendChild(spanElem);
         trElem.appendChild(tdElem4);
 
+        let newOptionElem = document.createElement("option");
+        newOptionElem.value = inputValue2;
+        newOptionElem.innerText = inputValue2;
+        selectElem.appendChild(newOptionElem);
+
+        updateSelectOptions();
+
         function deleteItem() {
             trElem.remove();
+            updateSelectOptions();
         }
 
         function done() {
@@ -99,5 +107,34 @@ function todoMain() {
             //     }
             // }
         }
+    }
+    function updateSelectOptions() {
+        let options = [];
+        let rows = document.getElementsByTagName("tr");
+        Array.from(rows).forEach((row, index, array) => {
+            if (index == 0) {
+                return;
+            }
+            let category = row.getElementsByTagName("td")[2].innerText;
+            // if (!options.includes(category)) {
+            //     options.push(category);
+            // }
+            options.push(category);
+        });
+        let optionsSet = new Set(options);
+
+        // remove all options except "all"
+        selectElem.innerHTML = '<option value="all">all</option>';
+
+
+        // options.forEach((option) => {
+        for (let option of optionsSet) {
+            let newOptionElem = document.createElement("option");
+            newOptionElem.value = option;
+            newOptionElem.innerText = option;
+            selectElem.appendChild(newOptionElem);
+        }
+        // });
+
     }
 }
