@@ -12,7 +12,6 @@ function todoMain() {
         inputElem2 = document.getElementsByTagName("input")[1];
         button = document.getElementById("addBtn");
         selectElem = document.getElementById("categoryFilter");
-
     }
     function addListeners() {
         button.addEventListener("click", addEntry, false);
@@ -23,13 +22,10 @@ function todoMain() {
         inputElem.value = "";
         let inputValue2 = inputElem2.value;
         inputElem2.value = "";
-
         // add a new row
-
         let table = document.getElementById("todoTable");
         let trElem = document.createElement("tr");
         table.appendChild(trElem);
-
         // checkbox cell
         let checkboxElem = document.createElement("input");
         checkboxElem.type = "checkbox";
@@ -53,37 +49,31 @@ function todoMain() {
         let tdElem4 = document.createElement("td");
         tdElem4.appendChild(spanElem);
         trElem.appendChild(tdElem4);
-
+        // add new category to select options
         let newOptionElem = document.createElement("option");
         newOptionElem.value = inputValue2;
         newOptionElem.innerText = inputValue2;
         selectElem.appendChild(newOptionElem);
-
         updateSelectOptions();
-
+        // helper functions of the addEntry function 
         function deleteItem() {
             trElem.remove();
             updateSelectOptions();
         }
-
         function done() {
             trElem.classList.toggle("strike");
         }
     }
+    // helper function of the addListeners function
     function filterEntries() {
-
         let selection = selectElem.value;
-
         if (selection == "all") {
             let rows = document.getElementsByTagName("tr");
             Array.from(rows).forEach((row, index, array) => {
                 row.style.display = "";
             });
-
-
-
         } else {
-            let rows = document.getElementsByTagName("tr");
+            rows = document.getElementsByTagName("tr");
 
             Array.from(rows).forEach((row, index, array) => {
                 if (index == 0) {
@@ -96,45 +86,28 @@ function todoMain() {
                     row.style.display = "none";
                 }
             });
-
-
-            // for (let i = 1; i < rows.length; i++) {
-            //     let category = rows[i].getElementsByTagName("td")[2].innerText;
-            //     if (category == selectElem.value) {
-            //         rows[i].style.display = "";
-            //     } else {
-            //         rows[i].style.display = "none";
-            //     }
-            // }
         }
     }
+    // helper function of the addEntry function
     function updateSelectOptions() {
+        // get all categories and use set to remove duplicates
         let options = [];
         let rows = document.getElementsByTagName("tr");
-        Array.from(rows).forEach((row, index, array) => {
+        Array.from(rows).forEach((row, index) => {
             if (index == 0) {
                 return;
             }
             let category = row.getElementsByTagName("td")[2].innerText;
-            // if (!options.includes(category)) {
-            //     options.push(category);
-            // }
             options.push(category);
         });
         let optionsSet = new Set(options);
-
         // remove all options except "all"
         selectElem.innerHTML = '<option value="all">all</option>';
-
-
-        // options.forEach((option) => {
         for (let option of optionsSet) {
             let newOptionElem = document.createElement("option");
             newOptionElem.value = option;
             newOptionElem.innerText = option;
             selectElem.appendChild(newOptionElem);
         }
-        // });
-
     }
 }
