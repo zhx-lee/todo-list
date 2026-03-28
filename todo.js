@@ -4,8 +4,11 @@ function todoMain() {
         inputElem2,
         button,
         selectElem;
+    // a lock to prevent saveData being called during loadData
+    let isLoading = false;
     getElements();
     addListeners();
+    loadData();
 
     function getElements() {
         inputElem = document.getElementsByTagName("input")[0];
@@ -55,15 +58,18 @@ function todoMain() {
 
 
         updateSelectOptions();
+        if (!isLoading) saveData();
 
 
         // defined inside addEntry to capture each 'trElem' via closure
         function deleteItem() {
             trElem.remove();
             updateSelectOptions();
+            if (!isLoading) saveData();
         }
         function done() {
             trElem.classList.toggle("strike");
+            if (!isLoading) saveData();
         }
     }
     // helper function of the addListeners function
@@ -102,6 +108,48 @@ function todoMain() {
             newOptionElem.value = option;
             newOptionElem.innerText = option;
             selectElem.appendChild(newOptionElem);
+        }
+    }
+
+    // save and load functions
+    function saveData() {
+        let table = document.getElementById("todoTable");
+        let rows = table.getElementsByTagName("tr");
+        let todos = [];
+
+        // traverse from i = 1, ignoring header row (checkbox, to-do, category, delete)
+        for (let i = 1; i < rows.length; i++) {
+            let cells = rows[i].getElementsByTagName("td");
+            todos.push({
+                task: cells[1].innerText,
+                category: cells[2].innerText,
+                isDone: rows[i].classList.contains("strike")
+            });
+        }
+        localStorage.setItem("simpleTodos", JSON.stringify(todos));
+    }
+    function loadData() {
+        let storedData = localStorage.getItem("simpleTodos");
+        if (storedData) {
+            // locked to prevent saveData being called when addEntry is called due to simulating add button click
+            isLoading = true;
+            let todos = JSON.parse(storedData);
+            // build the table based on loaded data
+            todos.forEach(todo => {
+                inputElem.value = todo.task;
+                inputElem2.value = todo.category;
+                // simulate add button click to reuse addEntry function
+                button.click();// 
+                if (todo.isDone) {
+                    let table = document.getElementById("todoTable");
+                    let lastRow = table.rows[table.rows.length - 1];
+                    let checkbox = lastRow.cells[0].getElementsByTagName("input")[0];
+                    checkbox.checked = true;
+                    lastRow.classList.add("strike");
+                }
+            });
+            // unlock after loading data, allow saveData to be called
+            isLoading = false;
         }
     }
 }
