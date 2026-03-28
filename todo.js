@@ -17,10 +17,13 @@ function todoMain() {
         button.addEventListener("click", addEntry, false);
         selectElem.addEventListener("change", filterEntries, false);
     }
-    function addEntry(event) {
+    function addEntry() {
         let inputValue = inputElem.value;
-        inputElem.value = "";
         let inputValue2 = inputElem2.value;
+
+        if (inputValue.trim() === "") return;
+
+        inputElem.value = "";
         inputElem2.value = "";
         // add a new row
         let table = document.getElementById("todoTable");
@@ -49,13 +52,12 @@ function todoMain() {
         let tdElem4 = document.createElement("td");
         tdElem4.appendChild(spanElem);
         trElem.appendChild(tdElem4);
-        // add new category to select options
-        let newOptionElem = document.createElement("option");
-        newOptionElem.value = inputValue2;
-        newOptionElem.innerText = inputValue2;
-        selectElem.appendChild(newOptionElem);
+
+
         updateSelectOptions();
-        // helper functions of the addEntry function 
+
+
+        // defined inside addEntry to capture each 'trElem' via closure
         function deleteItem() {
             trElem.remove();
             updateSelectOptions();
@@ -69,7 +71,8 @@ function todoMain() {
         let selection = selectElem.value;
         let rows = document.getElementsByTagName("tr");
         if (selection == "all") {
-            Array.from(rows).forEach((row) => {
+            Array.from(rows).forEach((row, index) => {
+                if (index == 0) return;
                 row.style.display = "";
             });
         } else {
@@ -87,9 +90,7 @@ function todoMain() {
         let options = [];
         let rows = document.getElementsByTagName("tr");
         Array.from(rows).forEach((row, index) => {
-            if (index == 0) {
-                return;
-            }
+            if (index == 0) return;
             let category = row.getElementsByTagName("td")[2].innerText;
             options.push(category);
         });
