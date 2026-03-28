@@ -67,24 +67,17 @@ function todoMain() {
     // helper function of the addListeners function
     function filterEntries() {
         let selection = selectElem.value;
+        let rows = document.getElementsByTagName("tr");
         if (selection == "all") {
-            let rows = document.getElementsByTagName("tr");
-            Array.from(rows).forEach((row, index, array) => {
+            Array.from(rows).forEach((row) => {
                 row.style.display = "";
             });
         } else {
-            rows = document.getElementsByTagName("tr");
-
-            Array.from(rows).forEach((row, index, array) => {
-                if (index == 0) {
-                    return;
-                }
+            Array.from(rows).forEach((row, index) => {
+                if (index == 0) return;
                 let category = row.getElementsByTagName("td")[2].innerText;
-                if (category == selectElem.value) {
-                    row.style.display = "";
-                } else {
-                    row.style.display = "none";
-                }
+                if (category == selectElem.value) row.style.display = "";
+                else row.style.display = "none";
             });
         }
     }
