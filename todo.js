@@ -1,4 +1,5 @@
 todoMain();
+
 function todoMain() {
     let inputElem,
         inputElem2,
@@ -6,9 +7,15 @@ function todoMain() {
         selectElem;
     // a lock to prevent saveData being called during loadData
     let isLoading = false;
+
+    // state-driven variables
+    let todos = [];
+    let currentFilter = "all";
+
     getElements();
     addListeners();
     loadData();
+    render();
 
     function getElements() {
         inputElem = document.getElementsByTagName("input")[0];
@@ -16,91 +23,114 @@ function todoMain() {
         button = document.getElementById("addBtn");
         selectElem = document.getElementById("categoryFilter");
     }
+
     function addListeners() {
         button.addEventListener("click", addEntry, false);
         selectElem.addEventListener("change", filterEntries, false);
     }
-    function addEntry() {
-        let inputValue = inputElem.value;
-        let inputValue2 = inputElem2.value;
 
-        if (inputValue.trim() === "") return;
+    function addEntry() {
+        let inputValue = inputElem.value.trim();
+        let inputValue2 = inputElem2.value.trim() || "general";
+
+        if (inputValue === "") return;
+
 
         inputElem.value = "";
         inputElem2.value = "";
-        // add a new row
-        let table = document.getElementById("todoTable");
-        let trElem = document.createElement("tr");
-        table.appendChild(trElem);
-        // checkbox cell
-        let checkboxElem = document.createElement("input");
-        checkboxElem.type = "checkbox";
-        checkboxElem.addEventListener("click", done, false);
-        let tdElem1 = document.createElement("td");
-        tdElem1.appendChild(checkboxElem);
-        trElem.appendChild(tdElem1);
-        // to-do cell
-        let tdElem2 = document.createElement("td");
-        tdElem2.innerText = inputValue;
-        trElem.appendChild(tdElem2);
-        // category cell
-        let tdElem3 = document.createElement("td");
-        tdElem3.innerText = inputValue2;
-        trElem.appendChild(tdElem3);
-        // delete cell
-        let spanElem = document.createElement("span");
-        spanElem.innerText = "delete";
-        spanElem.className = "material-symbols-outlined";
-        spanElem.addEventListener("click", deleteItem, false);
-        let tdElem4 = document.createElement("td");
-        tdElem4.appendChild(spanElem);
-        trElem.appendChild(tdElem4);
 
+        // update the data state instead of the DOM directly
+        todos.push({
+            task: inputValue,
+            category: inputValue2,
+            isDone: false
+        });
+
+        render();
+        if (!isLoading) saveData();
+    }
+
+    function render() {
+        let table = document.getElementById("todoTable");
+
+        // clear the table (keeping the header row at index 0)
+        while (table.rows.length > 1) {
+            table.deleteRow(1);
+        }
+
+        // build the table based on the current state (todos)
+        todos.forEach((todo, index) => {
+            // apply filtering logic
+            if (currentFilter !== "all" && todo.category !== currentFilter) {
+                return;
+            }
+
+            let trElem = document.createElement("tr");
+            if (todo.isDone) trElem.classList.add("strike");
+            table.appendChild(trElem);
+
+            // checkbox cell
+            let checkboxElem = document.createElement("input");
+            checkboxElem.type = "checkbox";
+            checkboxElem.checked = todo.isDone;
+            checkboxElem.addEventListener("click", done, false);
+
+            let tdElem1 = document.createElement("td");
+            tdElem1.appendChild(checkboxElem);
+            trElem.appendChild(tdElem1);
+
+            // to-do cell
+            let tdElem2 = document.createElement("td");
+            tdElem2.innerText = todo.task;
+            trElem.appendChild(tdElem2);
+
+            // category cell
+            let tdElem3 = document.createElement("td");
+            tdElem3.innerText = todo.category;
+            trElem.appendChild(tdElem3);
+
+            // delete cell
+            let spanElem = document.createElement("span");
+            spanElem.innerText = "delete";
+            spanElem.className = "material-symbols-outlined";
+            spanElem.addEventListener("click", deleteItem, false);
+
+            let tdElem4 = document.createElement("td");
+            tdElem4.appendChild(spanElem);
+            trElem.appendChild(tdElem4);
+
+            // defined inside forEach to capture the correct 'todo' and 'index' via closure
+            function done() {
+                todo.isDone = !todo.isDone;
+                render();
+                if (!isLoading) saveData();
+            }
+
+            function deleteItem() {
+                todos.splice(index, 1);
+                render();
+                if (!isLoading) saveData();
+            }
+        });
 
         updateSelectOptions();
-        if (!isLoading) saveData();
-
-
-        // defined inside addEntry to capture each 'trElem' via closure
-        function deleteItem() {
-            trElem.remove();
-            updateSelectOptions();
-            if (!isLoading) saveData();
-        }
-        function done() {
-            trElem.classList.toggle("strike");
-            if (!isLoading) saveData();
-        }
     }
+
     // helper function of the addListeners function
     function filterEntries() {
-        let selection = selectElem.value;
-        let rows = document.getElementsByTagName("tr");
-        if (selection == "all") {
-            Array.from(rows).forEach((row, index) => {
-                if (index == 0) return;
-                row.style.display = "";
-            });
-        } else {
-            Array.from(rows).forEach((row, index) => {
-                if (index == 0) return;
-                let category = row.getElementsByTagName("td")[2].innerText;
-                if (category == selectElem.value) row.style.display = "";
-                else row.style.display = "none";
-            });
-        }
+        currentFilter = selectElem.value;
+        render();
     }
-    // helper function of the addEntry function
+
+    // helper function of the render function
     function updateSelectOptions() {
-        // get all categories and use set to remove duplicates
-        let options = [];
-        let rows = document.getElementsByTagName("tr");
-        Array.from(rows).forEach((row, index) => {
-            if (index == 0) return;
-            let category = row.getElementsByTagName("td")[2].innerText;
-            options.push(category);
-        });
+        // get all categories from the todos state and use set to remove duplicates
+        let options = todos.map(todo => todo.category);
         let optionsSet = new Set(options);
+
+        // save current selection to restore it after rebuilding options
+        let currentSelection = selectElem.value;
+
         // remove all options except "all"
         selectElem.innerHTML = '<option value="all">all</option>';
         for (let option of optionsSet) {
@@ -109,46 +139,23 @@ function todoMain() {
             newOptionElem.innerText = option;
             selectElem.appendChild(newOptionElem);
         }
+
+        // restore selection if it still exists in the new list
+        if (Array.from(selectElem.options).some(opt => opt.value === currentSelection)) {
+            selectElem.value = currentSelection;
+        }
     }
 
     // save and load functions
     function saveData() {
-        let table = document.getElementById("todoTable");
-        let rows = table.getElementsByTagName("tr");
-        let todos = [];
-
-        // traverse from i = 1, ignoring header row (checkbox, to-do, category, delete)
-        for (let i = 1; i < rows.length; i++) {
-            let cells = rows[i].getElementsByTagName("td");
-            todos.push({
-                task: cells[1].innerText,
-                category: cells[2].innerText,
-                isDone: rows[i].classList.contains("strike")
-            });
-        }
         localStorage.setItem("simpleTodos", JSON.stringify(todos));
     }
+
     function loadData() {
         let storedData = localStorage.getItem("simpleTodos");
         if (storedData) {
-            // locked to prevent saveData being called when addEntry is called due to simulating add button click
             isLoading = true;
-            let todos = JSON.parse(storedData);
-            // build the table based on loaded data
-            todos.forEach(todo => {
-                inputElem.value = todo.task;
-                inputElem2.value = todo.category;
-                // simulate add button click to reuse addEntry function
-                button.click();// 
-                if (todo.isDone) {
-                    let table = document.getElementById("todoTable");
-                    let lastRow = table.rows[table.rows.length - 1];
-                    let checkbox = lastRow.cells[0].getElementsByTagName("input")[0];
-                    checkbox.checked = true;
-                    lastRow.classList.add("strike");
-                }
-            });
-            // unlock after loading data, allow saveData to be called
+            todos = JSON.parse(storedData);
             isLoading = false;
         }
     }

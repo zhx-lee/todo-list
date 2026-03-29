@@ -2,10 +2,6 @@
     text-decoration: line-through;
 }
 
-/* input:checked+span {
-    border: 5px solid green;
-} */
-
 td {
     border: 1px solid black;
     padding: 5px;
