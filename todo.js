@@ -3,8 +3,8 @@ todoMain();
 function todoMain() {
     let inputElem,
         inputElem2,
-        button,
-        selectElem;
+        addButton,
+        categoryFilter;
     // a lock to prevent saveData being called during loadData
     let isLoading = false;
 
@@ -18,15 +18,17 @@ function todoMain() {
     render();
 
     function getElements() {
+        // get references to both input boxes, add button, and category filter
         inputElem = document.getElementsByTagName("input")[0];
         inputElem2 = document.getElementsByTagName("input")[1];
-        button = document.getElementById("addBtn");
-        selectElem = document.getElementById("categoryFilter");
+        addButton = document.getElementById("addBtn");
+        categoryFilter = document.getElementById("categoryFilter");
     }
 
     function addListeners() {
-        button.addEventListener("click", addEntry, false);
-        selectElem.addEventListener("change", filterEntries, false);
+        // add event listeners to the add button and the category filter
+        addButton.addEventListener("click", addEntry, false);
+        categoryFilter.addEventListener("change", filterEntries, false);
     }
 
     function addEntry() {
@@ -35,7 +37,7 @@ function todoMain() {
 
         if (inputValue === "") return;
 
-
+        // clear both input boxes after getting the values
         inputElem.value = "";
         inputElem2.value = "";
 
@@ -54,17 +56,15 @@ function todoMain() {
         let table = document.getElementById("todoTable");
 
         // clear the table (keeping the header row at index 0)
-        while (table.rows.length > 1) {
-            table.deleteRow(1);
-        }
+        while (table.rows.length > 1) table.deleteRow(1);
 
         // build the table based on the current state (todos)
         todos.forEach((todo, index) => {
             // apply filtering logic
-            if (currentFilter !== "all" && todo.category !== currentFilter) {
-                return;
-            }
+            let categoryNotMatch = currentFilter !== "all" && todo.category !== currentFilter;
+            if (categoryNotMatch) return;
 
+            // create a new row for each to-do item
             let trElem = document.createElement("tr");
             if (todo.isDone) trElem.classList.add("strike");
             table.appendChild(trElem);
@@ -118,7 +118,7 @@ function todoMain() {
 
     // helper function of the addListeners function
     function filterEntries() {
-        currentFilter = selectElem.value;
+        currentFilter = categoryFilter.value;
         render();
     }
 
@@ -129,20 +129,20 @@ function todoMain() {
         let optionsSet = new Set(options);
 
         // save current selection to restore it after rebuilding options
-        let currentSelection = selectElem.value;
+        let currentSelection = categoryFilter.value;
 
         // remove all options except "all"
-        selectElem.innerHTML = '<option value="all">all</option>';
+        categoryFilter.innerHTML = '<option value="all">all</option>';
         for (let option of optionsSet) {
             let newOptionElem = document.createElement("option");
             newOptionElem.value = option;
             newOptionElem.innerText = option;
-            selectElem.appendChild(newOptionElem);
+            categoryFilter.appendChild(newOptionElem);
         }
 
         // restore selection if it still exists in the new list
-        if (Array.from(selectElem.options).some(opt => opt.value === currentSelection)) {
-            selectElem.value = currentSelection;
+        if (Array.from(categoryFilter.options).some(opt => opt.value === currentSelection)) {
+            categoryFilter.value = currentSelection;
         }
     }
 
