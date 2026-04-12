@@ -3,15 +3,13 @@ todoMain();
 function todoMain() {
     let todoInput,
         categoryInput,
-        dateInput,
-        timeInput,
         addButton,
         categoryFilter;
     // a lock to prevent saveData being called during loadData
     let isLoading = false;
 
     // state-driven variables
-    let todoRows = [];
+    let todoItems = [];
     let currentFilter = "all";
 
     getElements();
@@ -23,8 +21,6 @@ function todoMain() {
         // get references to inputs,addButton and category filter elements
         todoInput = document.getElementById("todoInput");
         categoryInput = document.getElementById("categoryInput");
-        dateInput = document.getElementById("dateInput");
-        timeInput = document.getElementById("timeInput");
         addButton = document.getElementById("addBtn");
         categoryFilter = document.getElementById("categoryFilter");
     }
@@ -38,19 +34,23 @@ function todoMain() {
     function addEntry() {
         let todoValue = todoInput.value.trim();
         let categoryValue = categoryInput.value.trim() || "general";
-        let dateValue = dateInput.value || "none";
-        let timeValue = timeInput.value || "none";
+        // get UTC date and time values for the new to-do item
+        let now = new Date();
+        // formatting date to YYYY-MM-DD (e.g., 2024-06-30)    
+        let dateValue = now.toISOString().split('T')[0];
+        // formatting time to HH:MM (e.g., 14:30)
+        let hours = now.getHours().toString().padStart(2, '0');
+        let minutes = now.getMinutes().toString().padStart(2, '0');
+        let timeValue = `${hours}:${minutes}`;
 
         if (todoValue === "") return;
 
         // clear both input boxes after getting the values
         todoInput.value = "";
         categoryInput.value = "";
-        dateInput.value = "";
-        timeInput.value = "";
 
         // update the data state instead of the DOM directly
-        todoRows.push({
+        todoItems.unshift({
             todo: todoValue,
             category: categoryValue,
             date: dateValue,
@@ -71,8 +71,8 @@ function todoMain() {
         // clear the table (keeping the header row at index 0)
         while (table.rows.length > 1) table.deleteRow(1);
 
-        // build the table based on the current state (todoRows)
-        todoRows.forEach((todoRow, index) => {
+        // build the table based on the current state (todoItems)
+        todoItems.forEach((todoRow, index) => {
             // apply filtering logic
             let categoryNotMatch = currentFilter !== "all" && todoRow.category !== currentFilter;
             if (categoryNotMatch) return;
@@ -137,7 +137,7 @@ function todoMain() {
             }
 
             function deleteItem() {
-                todoRows.splice(index, 1);
+                todoItems.splice(index, 1);
                 render();
                 if (!isLoading) saveData();
             }
@@ -154,8 +154,8 @@ function todoMain() {
 
     // helper function of the render function
     function updateSelectOptions() {
-        // get all categories from the todoRows state and use set to remove duplicates
-        let options = todoRows.map(todo => todo.category);
+        // get all categories from the todoItems state and use set to remove duplicates
+        let options = todoItems.map(todo => todo.category);
         let optionsSet = new Set(options);
 
         // save current selection to restore it after rebuilding options
@@ -178,14 +178,14 @@ function todoMain() {
 
     // save and load functions
     function saveData() {
-        localStorage.setItem("todoRows", JSON.stringify(todoRows));
+        localStorage.setItem("todoItems", JSON.stringify(todoItems));
     }
 
     function loadData() {
-        let storedData = localStorage.getItem("todoRows");
+        let storedData = localStorage.getItem("todoItems");
         if (storedData) {
             isLoading = true;
-            todoRows = JSON.parse(storedData);
+            todoItems = JSON.parse(storedData);
             isLoading = false;
         }
     }
